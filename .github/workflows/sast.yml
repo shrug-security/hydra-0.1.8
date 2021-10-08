@@ -42,4 +42,4 @@ jobs:
           sudo ln -s "/opt/infer-linux64-v$VERSION/bin/infer" /usr/local/bin/infer
           ./configure
           infer --progress-bar-style plain --quiet -- make
-          cat infer-out/bugs.txt
+          cat infer-out/report.txt
