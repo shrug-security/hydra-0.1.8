@@ -22,17 +22,15 @@
 
 #include "boa.h"
 
-void timestamp(void)
-{
-    log_error_time();
-    fprintf(stderr, "%s: server version %s\n", SERVER_NAME, SERVER_VERSION);
-    log_error_time();
-    fprintf(stderr, "%s: server built " __DATE__ " at " __TIME__ ".\n", SERVER_NAME);
-    log_error_time();
-    fprintf(stderr, "%s: starting server pid=%d", SERVER_NAME, getpid());
-    if (server_port && boa_ssl != 1)
-       fprintf(stderr, ", port=%d", server_port);    
-    if (ssl_port && boa_ssl > 0)
-       fprintf(stderr, ", SSL port=%d", ssl_port);    
-    fprintf(stderr, "\n");
+void timestamp(void) {
+  log_error_time();
+  fprintf(stderr, "%s: server version %s\n", SERVER_NAME, SERVER_VERSION);
+  log_error_time();
+  fprintf(stderr, "%s: server built " __DATE__ " at " __TIME__ ".\n",
+          SERVER_NAME);
+  log_error_time();
+  fprintf(stderr, "%s: starting server pid=%d", SERVER_NAME, getpid());
+  if (server_port && boa_ssl != 1) fprintf(stderr, ", port=%d", server_port);
+  if (ssl_port && boa_ssl > 0) fprintf(stderr, ", SSL port=%d", ssl_port);
+  fprintf(stderr, "\n");
 }

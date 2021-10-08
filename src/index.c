@@ -23,11 +23,11 @@
 #include "boa.h"
 
 typedef struct {
-   char* file;
-   int file_size;
+  char *file;
+  int file_size;
 } dir_index_st;
 
-static dir_index_st* directory_index_table[DIRECTORY_INDEX_TABLE_SIZE];
+static dir_index_st *directory_index_table[DIRECTORY_INDEX_TABLE_SIZE];
 
 /*
  * Name: add_directory_index
@@ -35,50 +35,48 @@ static dir_index_st* directory_index_table[DIRECTORY_INDEX_TABLE_SIZE];
  * Description: add an index file to the directory index files table.
  */
 
-void add_directory_index(const char *index_file)
-{
-    dir_index_st *new;
-    int index_file_len;
-    int i;
+void add_directory_index(const char *index_file) {
+  dir_index_st *new;
+  int index_file_len;
+  int i;
 
-    /* sanity checking */
-    if (index_file == NULL) {
-        DIE("NULL values sent to add_directory_index");
-    }
+  /* sanity checking */
+  if (index_file == NULL) {
+    DIE("NULL values sent to add_directory_index");
+  }
 
-    index_file_len = strlen( index_file);
-    
-    if (index_file_len == 0) {
-        DIE("empty values sent to add_directory_index");
-    }
+  index_file_len = strlen(index_file);
 
-    for (i=0;i<DIRECTORY_INDEX_TABLE_SIZE;i++) {
+  if (index_file_len == 0) {
+    DIE("empty values sent to add_directory_index");
+  }
 
-       new = directory_index_table[ i];
-       if (new) {
-           if (!strcmp( index_file, new->file)) /* don't add twice */
-              return;
-       } else break; /* found an empty position */
-    }
-
+  for (i = 0; i < DIRECTORY_INDEX_TABLE_SIZE; i++) {
+    new = directory_index_table[i];
     if (new) {
-        DIE("Directory index table is full. Increase DIRECTORY_INDEX_TABLE_SIZE");
-    }
+      if (!strcmp(index_file, new->file)) /* don't add twice */
+        return;
+    } else
+      break; /* found an empty position */
+  }
 
-    new = malloc( sizeof( dir_index_st));
-    if (!new) {
-       DIE("out of memory adding directory index");
-    }
+  if (new) {
+    DIE("Directory index table is full. Increase DIRECTORY_INDEX_TABLE_SIZE");
+  }
 
-    new->file = strdup( index_file);
-    if (!new) {
-        DIE("failed strdup");
-    }
+  new = malloc(sizeof(dir_index_st));
+  if (!new) {
+    DIE("out of memory adding directory index");
+  }
 
-    new->file_size = index_file_len;
-    
-    directory_index_table[i] = new;
+  new->file = strdup(index_file);
+  if (!new) {
+    DIE("failed strdup");
+  }
 
+  new->file_size = index_file_len;
+
+  directory_index_table[i] = new;
 }
 
 /*
@@ -92,44 +90,42 @@ void add_directory_index(const char *index_file)
  * a pointer to the index file or NULL if not found
  */
 
-char *find_and_open_directory_index(const char *directory, int directory_len, int* data_fd)
-{
-char pathname_with_index[MAX_PATH_LENGTH + 1];
-int total_size, i;
+char *find_and_open_directory_index(const char *directory, int directory_len,
+                                    int *data_fd) {
+  char pathname_with_index[MAX_PATH_LENGTH + 1];
+  int total_size, i;
 
-   *data_fd = -1;
+  *data_fd = -1;
 
-   if (directory_len == 0) directory_len = strlen( directory);
-   if (directory_len > MAX_PATH_LENGTH) return NULL;
+  if (directory_len == 0) directory_len = strlen(directory);
+  if (directory_len > MAX_PATH_LENGTH) return NULL;
 
-   memcpy( pathname_with_index, directory, directory_len);
+  memcpy(pathname_with_index, directory, directory_len);
 
+  for (i = 0; i < DIRECTORY_INDEX_TABLE_SIZE; i++) {
+    if (!directory_index_table[i]) break;
 
-   for (i=0;i<DIRECTORY_INDEX_TABLE_SIZE;i++) {
-      if ( !directory_index_table[i]) break;
+    total_size = directory_index_table[i]->file_size + directory_len;
+    if (total_size > MAX_PATH_LENGTH) continue;
 
-      total_size = directory_index_table[i]->file_size + directory_len;
-      if ( total_size > MAX_PATH_LENGTH) continue;
+    memcpy(&pathname_with_index[directory_len], directory_index_table[i]->file,
+           directory_index_table[i]->file_size);
 
-      memcpy( &pathname_with_index[directory_len], directory_index_table[i]->file, 
-      	directory_index_table[i]->file_size);
-      	
-      pathname_with_index[total_size] = 0;
+    pathname_with_index[total_size] = 0;
 
-      *data_fd = open(pathname_with_index, O_RDONLY);	
+    *data_fd = open(pathname_with_index, O_RDONLY);
 
-      /* If we couldn't access the file, then return the
-       * filename as usual, and a data_fd (-1), with the
-       * proper errno.
-       */
-      if (*data_fd == -1 && errno != EACCES) continue;
-      
-      /* data_fd > 0 -- found index! */
-      return directory_index_table[i]->file;
-   }
-   
-   return NULL;
+    /* If we couldn't access the file, then return the
+     * filename as usual, and a data_fd (-1), with the
+     * proper errno.
+     */
+    if (*data_fd == -1 && errno != EACCES) continue;
 
+    /* data_fd > 0 -- found index! */
+    return directory_index_table[i]->file;
+  }
+
+  return NULL;
 }
 
 /*
@@ -142,26 +138,23 @@ int total_size, i;
  * a pointer to the index file or NULL if not found
  */
 
-char *find_default_directory_index()
-{
-   if (directory_index_table[0] == NULL) return NULL;
-   return directory_index_table[0]->file;
+char *find_default_directory_index() {
+  if (directory_index_table[0] == NULL) return NULL;
+  return directory_index_table[0]->file;
 }
-
 
 /*
  * Empties the virthost hashtable, deallocating any allocated memory.
  */
 
-void dump_directory_index(void)
-{
-    int i;
+void dump_directory_index(void) {
+  int i;
 
-    for (i = 0; i < DIRECTORY_INDEX_TABLE_SIZE; ++i) { /* these limits OK? */
-        if (directory_index_table[i]) {
-            free( directory_index_table[i]->file);
-            free( directory_index_table[i]);
-            directory_index_table[i] = NULL;
-        }
+  for (i = 0; i < DIRECTORY_INDEX_TABLE_SIZE; ++i) { /* these limits OK? */
+    if (directory_index_table[i]) {
+      free(directory_index_table[i]->file);
+      free(directory_index_table[i]);
+      directory_index_table[i] = NULL;
     }
+  }
 }

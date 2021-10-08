@@ -21,8 +21,9 @@
 
 /* $Id: queue.c,v 1.6 2002/10/26 20:58:48 nmav Exp $*/
 
-#include "boa.h"
 #include "queue.h"
+
+#include "boa.h"
 
 /*
  * Name: block_request
@@ -30,38 +31,37 @@
  * Description: Moves a request from the ready queue to the blocked queue
  */
 
-void block_request(server_params* params, request * req)
-{
-    dequeue(&params->request_ready, req);
-    enqueue(&params->request_block, req);
+void block_request(server_params* params, request* req) {
+  dequeue(&params->request_ready, req);
+  enqueue(&params->request_block, req);
 
-    if (req->buffer_end) {
-        BOA_FD_SET( req, req->fd, BOA_WRITE);
-    } else {
-        switch (req->status) {
-        case IOSHUFFLE:
+  if (req->buffer_end) {
+    BOA_FD_SET(req, req->fd, BOA_WRITE);
+  } else {
+    switch (req->status) {
+      case IOSHUFFLE:
 #ifndef HAVE_SENDFILE
-            if (req->buffer_end - req->buffer_start == 0) {
-                BOA_FD_SET(req, req->data_fd, BOA_READ);
-                break;
-            }
-#endif
-        case WRITE:
-        case PIPE_WRITE:
-        case DONE:
-            BOA_FD_SET( req, req->fd, BOA_WRITE);
-            break;
-        case PIPE_READ:
-            BOA_FD_SET( req, req->data_fd, BOA_READ);
-            break;
-        case BODY_WRITE:
-            BOA_FD_SET( req, req->post_data_fd.fds[1], BOA_WRITE);
-            break;
-        default:
-            BOA_FD_SET( req, req->fd, BOA_READ);
-            break;
+        if (req->buffer_end - req->buffer_start == 0) {
+          BOA_FD_SET(req, req->data_fd, BOA_READ);
+          break;
         }
+#endif
+      case WRITE:
+      case PIPE_WRITE:
+      case DONE:
+        BOA_FD_SET(req, req->fd, BOA_WRITE);
+        break;
+      case PIPE_READ:
+        BOA_FD_SET(req, req->data_fd, BOA_READ);
+        break;
+      case BODY_WRITE:
+        BOA_FD_SET(req, req->post_data_fd.fds[1], BOA_WRITE);
+        break;
+      default:
+        BOA_FD_SET(req, req->fd, BOA_READ);
+        break;
     }
+  }
 }
 
 /*
@@ -70,39 +70,37 @@ void block_request(server_params* params, request * req)
  * Description: Moves a request from the blocked queue to the ready queue
  */
 
-void ready_request(server_params* params, request * req)
-{
-    dequeue(&params->request_block, req);
-    enqueue(&params->request_ready, req);
+void ready_request(server_params* params, request* req) {
+  dequeue(&params->request_block, req);
+  enqueue(&params->request_ready, req);
 
-    if (req->buffer_end) {
-        BOA_FD_CLR(req, req->fd, BOA_WRITE);
-    } else {
-        switch (req->status) {
-        case IOSHUFFLE:
+  if (req->buffer_end) {
+    BOA_FD_CLR(req, req->fd, BOA_WRITE);
+  } else {
+    switch (req->status) {
+      case IOSHUFFLE:
 #ifndef HAVE_SENDFILE
-            if (req->buffer_end - req->buffer_start == 0) {
-                BOA_FD_CLR(req, req->data_fd, BOA_READ);
-                break;
-            }
-#endif
-        case WRITE:
-        case PIPE_WRITE:
-        case DONE:
-            BOA_FD_CLR(req, req->fd, BOA_WRITE);
-            break;
-        case PIPE_READ:
-            BOA_FD_CLR(req, req->data_fd, BOA_READ);
-            break;
-        case BODY_WRITE:
-            BOA_FD_CLR(req, req->post_data_fd.fds[1], BOA_WRITE);
-            break;
-        default:
-            BOA_FD_CLR(req, req->fd, BOA_READ);
+        if (req->buffer_end - req->buffer_start == 0) {
+          BOA_FD_CLR(req, req->data_fd, BOA_READ);
+          break;
         }
+#endif
+      case WRITE:
+      case PIPE_WRITE:
+      case DONE:
+        BOA_FD_CLR(req, req->fd, BOA_WRITE);
+        break;
+      case PIPE_READ:
+        BOA_FD_CLR(req, req->data_fd, BOA_READ);
+        break;
+      case BODY_WRITE:
+        BOA_FD_CLR(req, req->post_data_fd.fds[1], BOA_WRITE);
+        break;
+      default:
+        BOA_FD_CLR(req, req->fd, BOA_READ);
     }
+  }
 }
-
 
 /*
  * Name: dequeue
@@ -110,7 +108,7 @@ void ready_request(server_params* params, request * req)
  * Description: Removes a request from its current queue
  */
 
-DEQUEUE_FUNCTION( dequeue, request)
+DEQUEUE_FUNCTION(dequeue, request)
 
 /*
  * Name: enqueue
@@ -118,5 +116,4 @@ DEQUEUE_FUNCTION( dequeue, request)
  * Description: Adds a request to the head of a queue
  */
 
-ENQUEUE_FUNCTION( enqueue, request)
-
+ENQUEUE_FUNCTION(enqueue, request)

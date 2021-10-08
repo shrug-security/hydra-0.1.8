@@ -9,6 +9,7 @@
 ### Changelog
 
 * [PR #1](https://github.com/shrug-security/hydra-0.1.8/pull/1) adds CI to build Hydra on every pull or PR.
+* [PR #2](https://github.com/shrug-security/hydra-0.1.8/pull/2) adds `clang-format` configuration and reformats all files to follow.
 
 ### Warranty & Liability
 

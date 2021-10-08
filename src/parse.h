@@ -30,10 +30,10 @@
 #define HYDRA_SRC_PARSE_H 1
 
 struct ccommand {
-    char *name;
-    int type;
-    void (*action) (char *, char*, char*, char *, void *);
-    void *object;
+  char *name;
+  int type;
+  void (*action)(char *, char *, char *, char *, void *);
+  void *object;
 };
 struct ccommand *lookup_keyword(char *c);
 void add_mime_type(char *extension, char *type);

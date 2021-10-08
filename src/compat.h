@@ -28,15 +28,15 @@
 #include "config.h"
 
 #ifdef USE_POLL
-# include <sys/poll.h>
+#include <sys/poll.h>
 #else
-# include <sys/select.h>
+#include <sys/select.h>
 #endif
 
 #ifdef FD_SETSIZE
-# define MAX_FD FD_SETSIZE
+#define MAX_FD FD_SETSIZE
 #else
-# define MAX_FD 2048
+#define MAX_FD 2048
 #endif
 
 #ifdef TIME_WITH_SYS_TIME
@@ -66,11 +66,11 @@
 
 /* Wild guess time, probably better done with configure */
 #ifdef O_NONBLOCK
-#define NOBLOCK O_NONBLOCK  /* Linux */
-#else /* O_NONBLOCK */
+#define NOBLOCK O_NONBLOCK /* Linux */
+#else                      /* O_NONBLOCK */
 #ifdef O_NDELAY
-#define NOBLOCK O_NDELAY    /* Sun */
-#else  /* O_NDELAY */
+#define NOBLOCK O_NDELAY /* Sun */
+#else                    /* O_NDELAY */
 #error "Can't find a way to #define NOBLOCK"
 #endif /* O_NDELAY */
 #endif /* O_NONBLOCK */
@@ -78,7 +78,7 @@
 #ifndef MAP_FILE
 #define MAP_OPTIONS MAP_SHARED /* Sun */
 #else
-#define MAP_OPTIONS MAP_FILE|MAP_SHARED /* Linux */
+#define MAP_OPTIONS MAP_FILE | MAP_SHARED /* Linux */
 #endif
 
 #ifdef INET6
@@ -92,30 +92,27 @@
 #endif
 
 #if HAVE_DIRENT_H
-# include <dirent.h>
-# define NAMLEN(dirent) strlen((dirent)->d_name)
+#include <dirent.h>
+#define NAMLEN(dirent) strlen((dirent)->d_name)
 #else
-# define dirent direct
-# define NAMLEN(dirent) (dirent)->d_namlen
-# if HAVE_SYS_NDIR_H
-#  include <sys/ndir.h>
-# endif
-# if HAVE_SYS_DIR_H
-#  include <sys/dir.h>
-# endif
-# if HAVE_NDIR_H
-#  include <ndir.h>
-# endif
+#define dirent direct
+#define NAMLEN(dirent) (dirent)->d_namlen
+#if HAVE_SYS_NDIR_H
+#include <sys/ndir.h>
+#endif
+#if HAVE_SYS_DIR_H
+#include <sys/dir.h>
+#endif
+#if HAVE_NDIR_H
+#include <ndir.h>
+#endif
 #endif
 
 /* below here, functions are provided in extras */
 #ifndef HAVE_SCANDIR
-int
-scandir (
-     const char *dir,
-     struct dirent ***namelist,
-     int (*select) (const struct dirent *),
-     int (*cmp) (const void *, const void *));
+int scandir(const char *dir, struct dirent ***namelist,
+            int (*select)(const struct dirent *),
+            int (*cmp)(const void *, const void *));
 #endif
 
 #ifndef HAVE_GMTIME_R
@@ -135,9 +132,9 @@ char *strdup(char *s);
 #endif
 
 #ifdef HAVE_TM_GMTOFF
-# define TIMEZONE_OFFSET(foo) foo->tm_gmtoff
+#define TIMEZONE_OFFSET(foo) foo->tm_gmtoff
 #else
-# define TIMEZONE_OFFSET(foo) timezone
+#define TIMEZONE_OFFSET(foo) timezone
 #endif
 
 #ifdef HAVE_TM_ZONE
@@ -156,11 +153,11 @@ char *strdup(char *s);
 #endif
 
 #ifdef HAVE_LINUXSENDFILE
-# include <sys/sendfile.h>
+#include <sys/sendfile.h>
 #endif
 
 #ifdef HAVE_BSDSENDFILE
-# include <sys/uio.h>
+#include <sys/uio.h>
 #endif
 
 #ifndef HAVE_OFF_T
