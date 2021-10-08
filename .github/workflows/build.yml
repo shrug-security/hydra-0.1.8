@@ -1,0 +1,21 @@
+name: build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        compiler: [gcc, clang]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Build Hydra 0.1.8
+        env:
+          CC: ${{ matrix.compiler }}
+        run: |
+          cd src
+          ./configure
+          make
