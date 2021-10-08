@@ -1,0 +1,50 @@
+ This is Hydra, a modification of Boa, which supports multiple threads of 
+execution. Boa is a high performance web server for Unix-alike computers, 
+covered by the Gnu General Public License.  This modification is based on 
+Boa version 0.94.13, and is currently of alpha quality.
+
+Why Hydra? Well, Lernean Hydra was a nine headed, monstrous serpent in 
+Greek Mythology, and seemed to resemble fine a multi-threaded Boa. An 
+interesting feature of Hydra is that a head, when cut off was replaced by 
+two others. This was not duplicated in Hydra's threads!
+
+
+***** Configure time parameters
+
+ --disable-ssl: Disables SSL and TLS support. You must have the gnutls library
+    for SSL to work.
+
+ --disable-smp: Disables all of the thread stuff. Hydra will function just like
+    Boa.
+
+ --disable-hic: HIC is a special hydra thread that handles scripting languages
+    such as PHP. Use this parameter to disable this feature.
+
+
+***** Development
+
+A mailing list for Hydra is available at 
+http://lists.hellug.gr/mailman/listinfo/hydra-dev
+
+Hydra has a public cvs repository. To checkout, use the following 
+cvs commands,
+
+$ cvs -d :pserver:anonymous@cvs.hellug.gr:/var/cvs/hydra login
+--- password is 'anonymous' ---
+$ cvs -d :pserver:anonymous@cvs.hellug.gr:/var/cvs/hydra co hydra
+
+
+*****
+About Boa:
+
+Boa was created in 1991 by Paul Phillips <paulp@go2net.com>.  It is being
+maintained and enhanced by Larry Doolittle <ldoolitt@boa.org>
+and Jon Nelson <jnelson@boa.org>.
+
+For more information (including installation instructions) examine
+the file docs/boa.txt or docs/boa.dvi, point your web browser to docs/boa.html,
+or visit the Boa homepage at
+
+        http://www.boa.org/
+
+EOF

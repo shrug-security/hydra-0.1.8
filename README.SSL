@@ -1,0 +1,24 @@
+All the SSL oriented variables exported to CGIs are listed below.
+These are compatible with the variables in mod_ssl.
+
+HTTPS                   # on if HTTPS is used in this connection.
+SSL_PROTOCOL            # one of "TLS 1.0" and "SSL 3.0"
+SSL_VERSION_LIBRARY     # the version of GnuTLS
+SSL_VERSION_INTERFACE   # the version of Hydra
+SSL_CIPHER              # the TLS ciphersuite used
+SSL_CIPHER_ALGKEYSIZE   # The cipher's algorithm key size in bits
+SSL_CIPHER_USEKEYSIZE   # The cipher's algorithm key size in bits
+SSL_CIPHER_EXPORT       # "true" if this connection is of export grade
+SSL_SESSION_ID          # The TLS session ID of this connection
+SSL_SERVER_I_DN         # The server's issuer DistinguishedName
+SSL_SERVER_S_DN         # The server's DN in form "C=GR,O=GnuTLS,E=nmav@gnutls.org"
+SSL_SERVER_V_START      # The validity start of server's certificate
+SSL_SERVER_V_END        # expiration time of server's certificate
+SSL_SERVER_M_SERIAL     # The serial number in server's certificate.
+
+SSL_CLIENT_VERIFY       # This should be "success", "failed" or "none"
+SSL_CLIENT_S_DN         # The client's DN
+SSL_CLIENT_I_DN         # The client's issuer DN
+SSL_CLIENT_M_SERIAL     # The serial number in client's certificate.
+SSL_CLIENT_V_START      # The validity start of client's certificate
+SSL_CLIENT_V_END        # expiration time of client's certificate

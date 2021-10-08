@@ -1,0 +1,5 @@
+sinclude(check_struct_for.m4)
+sinclude(libgnutls.m4)
+sinclude(extra_macros.m4)
+sinclude(poll_or_select.m4)
+sinclude(acx_pthread.m4)

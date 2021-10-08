@@ -1,0 +1,324 @@
+dnl $Id: configure.in,v 1.44 2006-03-10 20:40:51 nmav Exp $
+dnl Process this file with autoconf to produce a configure script.
+AC_PREREQ(2.50)
+
+AC_INIT
+
+AC_CANONICAL_HOST
+
+SERVER_VERSION="0.1.8"
+AC_DEFINE_UNQUOTED(SERVER_VERSION, "$SERVER_VERSION", [Version of Hydra])
+AC_DEFINE_UNQUOTED(SERVER_NAME, "Hydra", [Name of the server])
+
+AM_INIT_AUTOMAKE(hydra, $SERVER_VERSION, [nothing here])
+
+dnl Make config.h
+AM_CONFIG_HEADER(config.h)
+
+AM_MAINTAINER_MODE
+
+use_smp=yes
+
+AC_MSG_CHECKING([whether to include SMP support])
+AC_ARG_ENABLE(smp, 
+   AS_HELP_STRING([--disable-smp],[Do not include SMP support]),
+   use_smp=$enableval)
+AC_MSG_RESULT($use_smp)
+
+
+dnl Checks for programs.
+AM_PROG_LEX
+AC_PROG_YACC
+AC_PROG_CC
+AC_PROG_CPP
+
+dnl Checks for header files.
+AC_HEADER_DIRENT
+AC_HEADER_STDC
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS(fcntl.h sys/fcntl.h limits.h sys/time.h sys/select.h)
+AC_CHECK_HEADERS(getopt.h netinet/tcp.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_UID_T
+AC_TYPE_PID_T
+AC_HEADER_TIME
+
+AC_CHECK_TYPE( off_t, 
+  AC_DEFINE( HAVE_OFF_T, 1, [have off_t type]),,
+)
+
+AC_SYS_LARGEFILE
+
+dnl Checks for library functions.
+AC_FUNC_SETVBUF_REVERSED
+AC_FUNC_MMAP
+AC_CHECK_FUNCS(getcwd strdup strstr gmtime_r)
+AC_CHECK_FUNCS(gethostname gethostbyname select socket inet_aton)
+AC_CHECK_FUNCS(scandir alphasort qsort)
+AC_CHECK_FUNCS(getrlimit setrlimit)
+AC_CHECK_FUNCS(stat)
+
+AC_CHECK_STRUCT_FOR([
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
+],tm,tm_gmtoff)
+
+if test $ac_cv_struct_tm_has_tm_gmtoff = yes; then
+  AC_DEFINE(HAVE_TM_GMTOFF, 1, [Have tm_gmtoff])
+fi
+
+AC_CHECK_STRUCT_FOR([
+
+#if TIME_WITH_SYS_TIME
+# include <sys/time.h>
+# include <time.h>
+#else
+# if HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# else
+#  include <time.h>
+# endif
+#endif
+],tm,tm_zone)
+
+if test "$ac_cv_struct_tm_has_tm_zone" = "yes"; then
+  AC_DEFINE(HAVE_TM_ZONE, 1, [Have tm_zone])
+fi
+
+AC_CHECK_STRUCT_FOR([
+#include <sys/types.h>
+#include <netinet/in.h>
+],sockaddr_in,sin_len)
+
+if test "$ac_cv_struct_sockaddr_in_has_sin_len" = "yes"; then
+  AC_DEFINE(HAVE_SIN_LEN,1, [Have sin_len])
+fi
+
+if test $ac_cv_func_socket = no; then
+  # socket is not in the default libraries.
+  AC_CHECK_LIB(socket, socket, 
+   [ MYLIBS="$MYLIBS -lsocket" ])
+fi
+
+if test $ac_cv_func_inet_aton = no; then
+  # inet_aton is not in the default libraries.
+  AC_CHECK_LIB(resolv, inet_aton, MYLIBS="$MYLIBS -lresolv")
+fi
+
+if test $ac_cv_func_gethostname = no; then
+  AC_CHECK_LIB(nsl, gethostname, MYLIBS="$MYLIBS -lnsl")
+fi
+
+dnl May end up with duplicate -lnsl -- oh well
+if test $ac_cv_func_gethostbyname = no; then
+  AC_CHECK_LIB(nsl, gethostbyname, MYLIBS="$MYLIBS -lnsl")
+fi
+
+LIBS="$LIBS $MYLIBS"
+
+# Try to find TCP_CORK and use it if found.
+AC_MSG_CHECKING([whether TCP_CORK is a valid TCP socket option])
+AC_TRY_COMPILE(
+#include <sys/socket.h>
+#include <netinet/tcp.h>
+#include <netinet/in.h>
+,[
+  int one = 1, fd;
+  if (setsockopt(fd, IPPROTO_TCP, TCP_CORK,
+                    (void *) &one, sizeof (one)) == -1)
+      return -1;
+  return 0;
+
+],
+dnl *** FOUND
+AC_DEFINE( HAVE_TCP_CORK, 1, [TCP_CORK was found and will be used])
+AC_MSG_RESULT(yes),
+dnl *** NOT FOUND
+AC_MSG_RESULT(no)
+)
+
+use_sendfile=yes
+AC_MSG_CHECKING([whether to enable sendfile(2) usage])
+AC_ARG_ENABLE(sendfile,
+   AS_HELP_STRING([--disable-sendfile],[Disable the use of the sendfile(2) system call]),
+     use_sendfile=$enableval)
+AC_MSG_RESULT($use_sendfile)
+
+if test "$use_sendfile" = "yes"; then
+case $host_os in
+ *linux*)
+    AC_CHECK_HEADERS(sys/sendfile.h)
+    AC_CHECK_FUNCS(sendfile)
+    AC_DEFINE(HAVE_SENDFILE, 1, [whether to use sendfile])
+    AC_DEFINE(HAVE_LINUXSENDFILE, 1, [whether to use Linux' sendfile])
+  ;;
+ *freebsd*)
+    AC_CHECK_HEADERS(sys/sendfile.h)
+    AC_CHECK_FUNCS(sendfile)
+    AC_DEFINE(HAVE_BSDSENDFILE, 1, [whether to use FreeBSD's sendfile])
+    AC_DEFINE(HAVE_SENDFILE, 1, [whether to use sendfile])
+  ;;
+ *)  ;;
+esac
+fi
+
+
+
+if test "$use_smp" = "yes"; then
+ dnl Check for pthreads and do not define ENABLE_SMP
+ dnl if not found
+
+    ACX_PTHREAD(
+     AC_DEFINE( ENABLE_SMP, 1, [whether to enable SMP code]) 
+     LIBS="$PTHREAD_LIBS $LIBS"
+     CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+     CC="$PTHREAD_CC"
+    )
+fi
+
+
+use_ssl=yes
+
+AC_MSG_CHECKING(whether to include SSL and TLS support)
+AC_ARG_ENABLE(ssl,
+   AS_HELP_STRING([--disable-ssl],[Disable SSL and TLS support]),
+     use_ssl=$enableval)
+AC_MSG_RESULT($use_ssl)
+
+if test "$use_ssl" = "yes"; then
+  AM_PATH_LIBGNUTLS( 1.0.9, 
+   AC_DEFINE(HAVE_LIBGNUTLS, 1, [Have libgnutls])
+   AC_DEFINE( ENABLE_SSL, 1, [whether to enable ssl]),
+  AC_MSG_WARN([[
+   ***
+   *** libgnutls was not found. You may want to get it from
+   *** ftp://ftp.gnutls.org/pub/gnutls/
+  ]]))
+
+fi
+
+
+AC_CHECK_FUNC( fnmatch, 
+ AC_DEFINE( ENABLE_ACCESS_LISTS, 1, [whether to enable file access control lists]) ,
+ AC_MSG_WARN([[
+  ***
+  *** fnmatch() is not available in your system. File access control lists
+  *** will not be available.
+ ]])
+)
+
+if test -n "$GCC"; then
+  dnl if we are running gcc, use -pipe
+  test -n "$GCC" && CFLAGS="$CFLAGS -pipe"
+
+  AC_MSG_CHECKING(compile and link profiling code)
+  AC_ARG_ENABLE(profiling,
+  [  --enable-profiling      Compile and link profiling code],
+  [
+    if test "$enableval" = "yes" ; then
+      AC_MSG_RESULT(yes)
+      AC_CHECK_PROG(FC_OK, fc-config, yes, no)
+      if test x$FC_OK = xyes; then
+        CFLAGS="${CFLAGS} `fc-config --cflags`"
+	LIBS="$LIBS `fc-config --libs`"
+      else
+        AC_MSG_WARN(***
+*** You must install libfc in order to enable profiling. http://www710.univ-lyon1.fr/~yperret/fnccheck/profiler.html
+)
+      fi
+
+    else
+      AC_MSG_RESULT(no)
+    fi
+  ],
+  [
+    AC_MSG_RESULT(no)
+  ])
+fi
+
+AC_MSG_CHECKING(whether to compile and link debugging code)
+AC_ARG_ENABLE(debug,
+[  --disable-debug         Compile and link debugging code],
+[
+  if test "$enableval" = "yes" ; then
+    AC_MSG_RESULT(yes)
+    LDFLAGS="$LDFLAGS -g"
+    test -n "$GCC" && CFLAGS="$CFLAGS -Wall"
+  else
+    AC_MSG_RESULT(no)
+  fi
+],
+[
+    AC_MSG_RESULT(yes)
+    LDFLAGS="$LDFLAGS -g"
+    test -n "$GCC" && CFLAGS="$CFLAGS -Wall"
+])
+
+AC_MSG_CHECKING(whether to link with the Dmalloc memory debugger/profiler)
+AC_ARG_WITH(dmalloc, 
+[  --with-dmalloc          link with the Dmalloc memory debugger/profiler],
+[
+  if test "$withval" = "yes"; then
+    AC_MSG_RESULT(trying)
+    AC_CHECK_LIB(dmalloc, dmalloc_shutdown)
+  else
+    AC_MSG_RESULT(no)
+  fi
+],
+[
+  AC_MSG_RESULT(no)
+])
+
+AC_MSG_CHECKING(whether to link with the Electric Fence memory debugger)
+AC_ARG_WITH(efence, 
+[  --with-efence           link with the Electric Fence memory debugger ],
+[
+  if test "$withval" = "yes"; then
+    AC_MSG_RESULT(trying)
+    AC_CHECK_LIB(efence, main)
+  else
+    AC_MSG_RESULT(no)
+  fi
+],
+[
+  AC_MSG_RESULT(no)
+])
+
+
+POLL_OR_SELECT
+
+if test "$BOA_ASYNC_IO" = "poll"; then
+  AC_DEFINE( USE_POLL, 1, [whether to use poll])
+fi
+
+# there are three scenarios
+# GNU make is installed as "make"
+# GNU make is installed as something else we detected
+# GNU make is not installed
+# Unfortunately, we can't deal with it one way or the other
+# Trying multiple AC_OUTPUT confuses autoconf, and using variables
+# *in* AC_OUTPUT is even worse.
+# *so*, make a default makefile that just forces make to call gmake
+# or whatever.
+
+AC_CONFIG_FILES([Makefile src/Makefile contrib/Makefile contrib/redhat/Makefile examples/Makefile docs/Makefile])
+
+AC_OUTPUT
+
+echo "**********************************************************"
+echo ""
+echo "An example configuration file for hydra can be found at"
+echo "examples/hydra.conf."
+echo ""
+echo "**********************************************************"

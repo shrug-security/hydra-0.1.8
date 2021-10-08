@@ -1,0 +1,55 @@
+Liam Widdowson <lbw@telstra.com>
+  Lots of improvement for Solaris support
+
+Wes Hardaker <wjhardaker@ucdavis.edu>
+
+Michal Kara <lemming@netcentrum.cz>
+  mmap_cache buglet fix
+
+Matt Callaway <matt@securepipe.com>
+  CGI chdir issue
+
+Jari Korva <jpkorva@iki.fi>
+  IPv6 patch
+
+William Meadows <wmeadows@linux-support.net>
+  escape.c bug notification and (first) fix
+
+Thomas Neumann <tn@tmr-online.de>
+  *BSD compilation/core bugfixes
+
+Paul Saab <paul@mu.org>
+  Remove SO_REUSEADDR setting on each client socket
+
+David N. Welton <davidw@linuxcare.com>
+  Added "Listen" directive for server bind address
+
+Craig Silverstein <csilvers@google.com>
+  Patches for config.h and config.c
+
+Russ Nelson <nelson@crynwr.com>
+  Original, Experimental IP-based Virtual Host code
+
+Landon Curt Noll http://www.isthe.com/chongo
+  Allow non-standard date format 31 September 2000 23:59:59 GMT
+  Skip whitespace before HTTP/major.minor
+  FNV1a hash in hash.c
+
+Brieuc Jeunhomme <bbp@via.ecp.fr>
+  Fix buglet in alias expansion
+  The name-based virtualhost code patch send to us by Brieuc was
+  *very* close to the one that had been developed in-house, so we merged
+  them.
+  Special thanks for *actually* writing DOCS!!
+
+Laurent Pelecq  <lpelecq@users.sourceforge.net>
+  Test for socket in -lnet for BeOS
+  Tests for herror and inet_addr
+
+Don Mahurin (dma) <dmahurin@dma.org>
+  pidfile patch
+  Default mime_types patch
+  NCSA environment environment variables wrapped in #ifdef USE_NCSA_CGI_ENV
+ 
+Ulf Harnhammar <ulfh@update.uu.se>
+  Fixed a small escaping issue with the automatic directory index maker

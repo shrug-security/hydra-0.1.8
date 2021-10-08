@@ -1,0 +1,106 @@
+#!/bin/bash
+#
+# $Id: rc.hydra,v 1.2 2003/01/22 07:47:39 nmav Exp $
+#
+#	/etc/rc.d/init.d/hydra
+#
+# Starts the Hydra HTTP Daemon
+#
+# chkconfig: 2345 80 30
+# description: Multithreaded Web Server
+# processname: httpd
+
+config=/etc/hydra/hydra.conf
+prefix=/usr/local
+
+test -x ${prefix}/bin/hydra || exit 0
+[ -f ${config} ] || exit 1
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ ${NETWORKING} = "no" ] && exit 0
+
+RETVAL=0
+
+start() {
+	echo -n 'Starting Hydra: '
+	daemon ${prefix}/bin/hydra
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/hydra
+	return $RETVAL
+}
+
+stop() {
+	echo -n 'Shutting down Hydra: '
+	killproc hydra
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/hydra
+	rm -f /var/run/hydra.pid
+	return $RETVAL
+}
+
+restart() {
+	stop
+	start
+}
+
+reload() {
+	echo -n "Reloading configuration: "
+	killproc hydra -HUP
+	RETVAL=$?
+	echo
+	return $RETVAL
+}
+
+condrestart() {
+	[ -e /var/lock/subsys/hydra ] && restart
+	return 0
+}
+
+stats() {
+	echo -n "Dumping statistics to ErrorLog: "
+	killproc hydra -USR1
+	RETVAL=$?
+	echo
+	return $RETVAL
+}
+
+#
+#	See how we were called.
+#
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  status)
+	status hydra 
+	;;
+  restart)
+	restart
+  	;;
+  condrestart)
+	condrestart
+  	;;
+  reload)
+  	reload
+	;;
+  stats)
+  	stats
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|status|restart|condrestart|reload|stats}"
+	RETVAL=1
+esac
+
+exit $RETVAL
+

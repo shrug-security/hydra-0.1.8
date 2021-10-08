@@ -1,0 +1,41 @@
+
+Core
+  Add more of HTTP/1.1 features.
+  Improve HTTP/1.1 ranges to support multiple values
+     such as bytes="10-15,16-20,50-100".
+  Improve the parameter regeneration (hack) in TLS/SSL.
+  Add support for virtual hosting in TLS, and support for
+     openpgp keys.
+  Add rewrite rules. Probably using libpcre.
+  Add FastCGI support.
+  Rewrite virtual host code.
+  Rewrite error reporting to client:
+     - Virtual Host defined error pages
+     - Global server error pages
+     - Bulitin error pages
+  Rewrite hash.c ( allow arbitrary data in cache, not only *char )
+     Only cache framework in hash.c. Service specyfic code in diffrent 
+     files.
+  Cleanup in string.c. Kill dead code.
+  Kill any access() occurences.
+     Change all *sprintf to *snprintf ( more secure )
+     Implement strlcpy() and strlcat() in string.c
+     Change all strcpy/strncpy/strcat/strncat to strlcpy/strlcat ( more secure )
+  Bulitin indexing ( spawning CGI is very, very slow... ;( )
+     Caching indexes in memory(or disk), recacheing when client 
+     sends "Pragma: no_cache".
+     Dumping cached entries from memory when timeout has expired.
+  Authorization ( with modules ).
+  Drop support for those '#ifdef ENABLE_SMP'. SMP should be
+     always on. [only idea] 
+     [also check how to work on systems that do not support threads -- 
+      openbsd should be one]
+
+Config
+  Rewrite configuration file parser to allow blocks of directives.
+
+Documentation
+  Need lots of :-) .
+
+Miscellaneous
+  Change boa_* functions to be hydra_* functions :-) .
