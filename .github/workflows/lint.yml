@@ -1,0 +1,19 @@
+name: lint
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install dependency
+        run: |
+          sudo apt-get install -y clang-format
+      - name: Use clang-format to lint
+        run: |
+          clang-format -n src/*.c src/*.h

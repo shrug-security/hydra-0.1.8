@@ -28,9 +28,7 @@
 
 #include "boa.h"
 
-
 static action_module_st* module_hashtable[MODULE_HASHTABLE_SIZE];
-
 
 /* add_cgi_action
  *
@@ -38,57 +36,56 @@ static action_module_st* module_hashtable[MODULE_HASHTABLE_SIZE];
  * specific action (executable to run with)
  */
 
-void add_cgi_action(const char *action, const char* file_type)
-{
-int hash;
-action_module_st* old, *start;
+void add_cgi_action(const char* action, const char* file_type) {
+  int hash;
+  action_module_st *old, *start;
 
-    /* sanity checking */
-    if (action == NULL || file_type == NULL) {
-        DIE("NULL values sent to add_cgi_action");
-    }
+  /* sanity checking */
+  if (action == NULL || file_type == NULL) {
+    DIE("NULL values sent to add_cgi_action");
+  }
 
-    hash = get_cgi_module_hash_value( file_type);
-    start = old = module_hashtable[hash];
-    
-    if ( old != NULL) {
-       /* find next empty */
-       do {
-          hash = (hash + 1) % MODULE_HASHTABLE_SIZE;
-          
-          old = module_hashtable[hash];
+  hash = get_cgi_module_hash_value(file_type);
+  start = old = module_hashtable[hash];
 
-          if (start == old) {
-             DIE("Module hashtable is full.");
-          }
-          
-       } while( old != NULL);
-    }
-    
-    /* old was found, and is empty. */
-    
-    old = malloc( sizeof(action_module_st));
-    if (old==NULL) {
-       DIE("malloc() failed.");
-    }
+  if (old != NULL) {
+    /* find next empty */
+    do {
+      hash = (hash + 1) % MODULE_HASHTABLE_SIZE;
 
-    old->sym_prefix = NULL;
- 
-    old->content_type = strdup( file_type);
-    if (old->content_type == NULL) {
-       DIE("strdup() failed.");
-    }
+      old = module_hashtable[hash];
 
-    old->content_type_len = strlen( file_type);
+      if (start == old) {
+        DIE("Module hashtable is full.");
+      }
 
-    old->action = strdup( action);
-    if ( old->action == NULL) {
-       DIE("strdup() failed.");    
-    }
+    } while (old != NULL);
+  }
 
-    module_hashtable[hash] = old;
+  /* old was found, and is empty. */
 
-    return;
+  old = malloc(sizeof(action_module_st));
+  if (old == NULL) {
+    DIE("malloc() failed.");
+  }
+
+  old->sym_prefix = NULL;
+
+  old->content_type = strdup(file_type);
+  if (old->content_type == NULL) {
+    DIE("strdup() failed.");
+  }
+
+  old->content_type_len = strlen(file_type);
+
+  old->action = strdup(action);
+  if (old->action == NULL) {
+    DIE("strdup() failed.");
+  }
+
+  module_hashtable[hash] = old;
+
+  return;
 }
 
 /*
@@ -96,51 +93,48 @@ action_module_st* old, *start;
  *
  * Description: Locates the appropriate HIC module for the given file.
  * Actually ones needs this to get the dlsymed() functions.
- * 
+ *
  * Returns:
  *
  * a pointer to a hic_module_st structure or NULL if not found
  */
 
-action_module_st *find_cgi_action_appr_module(const char *content_type, int content_type_len)
-{
-int i, hash;
+action_module_st* find_cgi_action_appr_module(const char* content_type,
+                                              int content_type_len) {
+  int i, hash;
 
-   if (content_type == NULL) return NULL;
-   if (content_type_len == 0) content_type_len = strlen( content_type);
+  if (content_type == NULL) return NULL;
+  if (content_type_len == 0) content_type_len = strlen(content_type);
 
-   hash = get_cgi_module_hash_value( content_type);
-   for (i=hash;i<MODULE_HASHTABLE_SIZE;i++) {
-      if (module_hashtable[i] == NULL) break;
+  hash = get_cgi_module_hash_value(content_type);
+  for (i = hash; i < MODULE_HASHTABLE_SIZE; i++) {
+    if (module_hashtable[i] == NULL) break;
 
-      if ( content_type_len != module_hashtable[i]->content_type_len) continue;
+    if (content_type_len != module_hashtable[i]->content_type_len) continue;
 
-      if (memcmp( content_type, module_hashtable[i]->content_type, 
-      	content_type_len) == 0) {
-        /* FOUND! */
-      	return module_hashtable[i];
-      }
-   }
- 
-   return NULL;
+    if (memcmp(content_type, module_hashtable[i]->content_type,
+               content_type_len) == 0) {
+      /* FOUND! */
+      return module_hashtable[i];
+    }
+  }
 
+  return NULL;
 }
-
 
 /*
  * Empties the hic modules table, deallocating any allocated memory.
  */
 
-void dump_cgi_action_modules(void)
-{
-int i;
+void dump_cgi_action_modules(void) {
+  int i;
 
-    for (i = 0; i < MODULE_HASHTABLE_SIZE; ++i) { /* these limits OK? */
-        if (!module_hashtable[i]) continue;
+  for (i = 0; i < MODULE_HASHTABLE_SIZE; ++i) { /* these limits OK? */
+    if (!module_hashtable[i]) continue;
 
-        free( module_hashtable[i]->action);
+    free(module_hashtable[i]->action);
 
-        free( module_hashtable[i]);
-        module_hashtable[i] = NULL;
-    }
+    free(module_hashtable[i]);
+    module_hashtable[i] = NULL;
+  }
 }

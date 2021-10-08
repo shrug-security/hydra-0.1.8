@@ -32,76 +32,76 @@ int pending_requests;
 
 void update_blocked(server_params* params, struct pollfd pfd1[]);
 
-void* select_loop(void* _params)
-{
-    server_params* params = _params;
-    struct pollfd pfd1[2][MAX_FD];
-    short which = 0, other = 1, temp;
-    int server_pfd = -1;
-    int ssl_server_pfd = -1;
+void* select_loop(void* _params) {
+  server_params* params = _params;
+  struct pollfd pfd1[2][MAX_FD];
+  short which = 0, other = 1, temp;
+  int server_pfd = -1;
+  int ssl_server_pfd = -1;
 
-    params->pfds = pfd1[which];
-    params->pfd_len = 0;
+  params->pfds = pfd1[which];
+  params->pfd_len = 0;
 
-    while (1) {
-        int timeout;
+  while (1) {
+    int timeout;
 
-        handle_signals( params);
+    handle_signals(params);
 
-        if (!params->sigterm_flag) {
-            if (params->server_s[0].socket != -1) {
-               server_pfd = params->pfd_len++;
-               params->pfds[server_pfd].fd = params->server_s[0].socket;
-               params->pfds[server_pfd].events = POLLIN | POLLPRI;
-            }
-            if (params->server_s[1].socket != -1) {
-               ssl_server_pfd = params->pfd_len++;
-               params->pfds[ssl_server_pfd].fd = params->server_s[1].socket;
-               params->pfds[ssl_server_pfd].events = POLLIN | POLLPRI;
-            }
-        }
-
-        /* If there are any requests ready, the timeout is 0.
-         * If not, and there are any requests blocking, the
-         *  timeout is ka_timeout ? ka_timeout * 1000, otherwise
-         *  REQUEST_TIMEOUT * 1000.
-         * -1 means forever
-         */
-	SET_TIMEOUT( timeout, 1000, -1);
-
-        if (poll(params->pfds, params->pfd_len, timeout) == -1) {
-            if (errno == EINTR)
-                continue;       /* while(1) */
-        }
-
-        params->pfd_len = 0;
-        if (!params->sigterm_flag) {
-           if (params->pfds[server_pfd].revents & POLLIN)
-          	params->server_s[0].pending_requests = 1;
-           if (params->pfds[ssl_server_pfd].revents & POLLIN)
-          	params->server_s[1].pending_requests = 1;
-        }
-
-        /* go through blocked and unblock them if possible */
-        /* also resets params->pfd_len and pfd to known blocked */
-        if (params->request_block) {
-            update_blocked(params, pfd1[other]);
-        }
-
-        /* swap pfd */
-        params->pfds = pfd1[other];
-        temp = other;
-        other = which;
-        which = temp;
-
-        /* process any active requests */
-        if (params->server_s[0].socket != -1) process_requests(params, &params->server_s[0]);
-#ifdef ENABLE_SSL
-        if (params->server_s[1].socket != -1) process_requests(params, &params->server_s[1]);
-#endif
+    if (!params->sigterm_flag) {
+      if (params->server_s[0].socket != -1) {
+        server_pfd = params->pfd_len++;
+        params->pfds[server_pfd].fd = params->server_s[0].socket;
+        params->pfds[server_pfd].events = POLLIN | POLLPRI;
+      }
+      if (params->server_s[1].socket != -1) {
+        ssl_server_pfd = params->pfd_len++;
+        params->pfds[ssl_server_pfd].fd = params->server_s[1].socket;
+        params->pfds[ssl_server_pfd].events = POLLIN | POLLPRI;
+      }
     }
 
-    return NULL;
+    /* If there are any requests ready, the timeout is 0.
+     * If not, and there are any requests blocking, the
+     *  timeout is ka_timeout ? ka_timeout * 1000, otherwise
+     *  REQUEST_TIMEOUT * 1000.
+     * -1 means forever
+     */
+    SET_TIMEOUT(timeout, 1000, -1);
+
+    if (poll(params->pfds, params->pfd_len, timeout) == -1) {
+      if (errno == EINTR) continue; /* while(1) */
+    }
+
+    params->pfd_len = 0;
+    if (!params->sigterm_flag) {
+      if (params->pfds[server_pfd].revents & POLLIN)
+        params->server_s[0].pending_requests = 1;
+      if (params->pfds[ssl_server_pfd].revents & POLLIN)
+        params->server_s[1].pending_requests = 1;
+    }
+
+    /* go through blocked and unblock them if possible */
+    /* also resets params->pfd_len and pfd to known blocked */
+    if (params->request_block) {
+      update_blocked(params, pfd1[other]);
+    }
+
+    /* swap pfd */
+    params->pfds = pfd1[other];
+    temp = other;
+    other = which;
+    which = temp;
+
+    /* process any active requests */
+    if (params->server_s[0].socket != -1)
+      process_requests(params, &params->server_s[0]);
+#ifdef ENABLE_SSL
+    if (params->server_s[1].socket != -1)
+      process_requests(params, &params->server_s[1]);
+#endif
+  }
+
+  return NULL;
 }
 
 /*
@@ -120,42 +120,41 @@ void* select_loop(void* _params)
  *  - fd ready for other actions?  do them
  */
 
-void update_blocked(server_params* params, struct pollfd pfd1[])
-{
-    request *current, *next = NULL;
-    time_t time_since;
+void update_blocked(server_params* params, struct pollfd pfd1[]) {
+  request *current, *next = NULL;
+  time_t time_since;
 
-    for (current = params->request_block; current; current = next) {
-        time_since = current_time - current->time_last;
-        next = current->next;
+  for (current = params->request_block; current; current = next) {
+    time_since = current_time - current->time_last;
+    next = current->next;
 
-        // FIXME::  the first below has the chance of leaking memory!
-        //  (setting status to DEAD not DONE....)
-        /* hmm, what if we are in "the middle" of a request and not
-         * just waiting for a new one... perhaps check to see if anything
-         * has been read via header position, etc... */
-        if (current->kacount < ka_max && /* we *are* in a keepalive */
-            (time_since >= ka_timeout) && /* ka timeout has passsed */
-            !current->logline) { /* haven't read anything yet */
-            current->status = DEAD; /* connection keepalive timed out */
-            ready_request( params, current);
-            continue;
-        } else if (time_since > REQUEST_TIMEOUT) {
-            log_error_doc(current);
-            fprintf(stderr, "connection timed out (%d secs)\n", (int)time_since);
-            current->status = DEAD;
-            ready_request( params, current);
-            continue;
-        }
-
-        if (params->pfds[current->pollfd_id].revents) {
-            ready_request( params, current);
-        } else {                /* still blocked */
-            pfd1[params->pfd_len].fd = params->pfds[current->pollfd_id].fd;
-            pfd1[params->pfd_len].events = params->pfds[current->pollfd_id].events;
-            current->pollfd_id = params->pfd_len++;
-        }
+    // FIXME::  the first below has the chance of leaking memory!
+    //  (setting status to DEAD not DONE....)
+    /* hmm, what if we are in "the middle" of a request and not
+     * just waiting for a new one... perhaps check to see if anything
+     * has been read via header position, etc... */
+    if (current->kacount < ka_max &&  /* we *are* in a keepalive */
+        (time_since >= ka_timeout) && /* ka timeout has passsed */
+        !current->logline) {          /* haven't read anything yet */
+      current->status = DEAD;         /* connection keepalive timed out */
+      ready_request(params, current);
+      continue;
+    } else if (time_since > REQUEST_TIMEOUT) {
+      log_error_doc(current);
+      fprintf(stderr, "connection timed out (%d secs)\n", (int)time_since);
+      current->status = DEAD;
+      ready_request(params, current);
+      continue;
     }
+
+    if (params->pfds[current->pollfd_id].revents) {
+      ready_request(params, current);
+    } else { /* still blocked */
+      pfd1[params->pfd_len].fd = params->pfds[current->pollfd_id].fd;
+      pfd1[params->pfd_len].events = params->pfds[current->pollfd_id].events;
+      current->pollfd_id = params->pfd_len++;
+    }
+  }
 }
 
 #endif /* USE_POLL */

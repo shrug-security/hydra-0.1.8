@@ -26,229 +26,229 @@
 #define _GLOBALS_H
 
 #ifdef ENABLE_SSL
-# include <gnutls/gnutls.h>
+#include <gnutls/gnutls.h>
 #endif
 
 typedef struct {
-	int socket;
-	int secure; /* ssl or not. NOTE: 0 or 1. Nothing else. */
-	int port;
-	int pending_requests;
+  int socket;
+  int secure; /* ssl or not. NOTE: 0 or 1. Nothing else. */
+  int port;
+  int pending_requests;
 } socket_type;
 
 struct mmap_entry {
-    dev_t dev;
-    ino_t ino;
-    char *mmap;
-    int use_count;
-    size_t len;
-    int available;
-    int times_used;
+  dev_t dev;
+  ino_t ino;
+  char *mmap;
+  int use_count;
+  size_t len;
+  int available;
+  int times_used;
 };
 
 /* This structure is used for both HIC loaded modules
  * and CGI Actions.
  */
 typedef struct {
-   char* sym_prefix; /* ie. "_php" */
-   char* content_type; /* ie. "application/x-httpd-php" */
-   char* action; /* ie. "/usr/bin/php4" */
-   int content_type_len;
+  char *sym_prefix;   /* ie. "_php" */
+  char *content_type; /* ie. "application/x-httpd-php" */
+  char *action;       /* ie. "/usr/bin/php4" */
+  int content_type_len;
 } action_module_st;
 
 struct alias {
-    char *fakename;             /* URI path to file */
-    char *realname;             /* Actual path to file */
-    int type;                   /* ALIAS, SCRIPTALIAS, REDIRECT */
-    int fake_len;               /* strlen of fakename */
-    int real_len;               /* strlen of realname */
-    struct alias *next;
+  char *fakename; /* URI path to file */
+  char *realname; /* Actual path to file */
+  int type;       /* ALIAS, SCRIPTALIAS, REDIRECT */
+  int fake_len;   /* strlen of fakename */
+  int real_len;   /* strlen of realname */
+  struct alias *next;
 };
 
 typedef struct alias alias;
 
 typedef struct {
-    /* We use this, in order to store data to pipes if the
-     * given POST data length, is smaller that PIPE_BUF;
-     */
-    int fds[2]; /* 0 is for reading, 1 for writing */
-    int pipe; /* non zero if it's a pipe */
+  /* We use this, in order to store data to pipes if the
+   * given POST data length, is smaller that PIPE_BUF;
+   */
+  int fds[2]; /* 0 is for reading, 1 for writing */
+  int pipe;   /* non zero if it's a pipe */
 } tmp_fd;
 
-struct access_node
-{
+struct access_node {
   char *pattern;
   char type;
 };
 
 typedef struct _virthost {
-    char *ip;                   /* This virthost will be visible in this IP */
-    char *host;                 /* The hostname of the virtual host */
-    char* document_root;        /* The document root of this virtual host */
-    char* user_dir;             /* The user dir of this virtual host */
-    int user_dir_len;                 /* strlen of user_dir */
-    int ip_len;                 /* strlen of IP */
-    int host_len;               /* strlen of hostname */
-    int document_root_len;      /* strlen of document root */
-    alias *alias_hashtable[ALIAS_HASHTABLE_SIZE]; /* aliases in this virthost */
+  char *ip;              /* This virthost will be visible in this IP */
+  char *host;            /* The hostname of the virtual host */
+  char *document_root;   /* The document root of this virtual host */
+  char *user_dir;        /* The user dir of this virtual host */
+  int user_dir_len;      /* strlen of user_dir */
+  int ip_len;            /* strlen of IP */
+  int host_len;          /* strlen of hostname */
+  int document_root_len; /* strlen of document root */
+  alias *alias_hashtable[ALIAS_HASHTABLE_SIZE]; /* aliases in this virthost */
 
-    int n_access;
-    struct access_node *access_nodes;
-    struct _virthost *next;
+  int n_access;
+  struct access_node *access_nodes;
+  struct _virthost *next;
 } virthost;
 
-struct request {                /* pending requests */
-    int fd;                     /* client's socket fd */
+struct request { /* pending requests */
+  int fd;        /* client's socket fd */
 #ifdef USE_POLL
-    int pollfd_id;
+  int pollfd_id;
 #endif
 #ifdef ENABLE_SSL
-    gnutls_session ssl_state;
-    char * certificate_verified; /* a string that describes the output of the
-                                  * certificate verification function. Needed
-                                  * in CGIs.
-                                  */
+  gnutls_session ssl_state;
+  char *certificate_verified; /* a string that describes the output of the
+                               * certificate verification function. Needed
+                               * in CGIs.
+                               */
 #endif
-    int secure; /* whether ssl or not */
-    int		alert_to_send; /* in SEND_ALERT state */
+  int secure;        /* whether ssl or not */
+  int alert_to_send; /* in SEND_ALERT state */
 
-    int status;                 /* see #defines.h */
-    time_t time_last;           /* time of last succ. op. */
-    char *pathname;             /* pathname of requested file */
-    off_t range_start;        /* send file from byte ... */
-    off_t range_stop;         /* to byte */
-    off_t pipe_range_stop;    /* This is used only if the file is sent by the pipe_read() method.
-                                 * Indicates how many bytes to send from a file (actually a copy of range_stop,
-                                 * but it is modified. */
-    int keepalive_given;	/* whether the keepalive was sent by the client */
-    int keepalive;              /* keepalive status */
-    int kacount;                /* keepalive count */
+  int status;            /* see #defines.h */
+  time_t time_last;      /* time of last succ. op. */
+  char *pathname;        /* pathname of requested file */
+  off_t range_start;     /* send file from byte ... */
+  off_t range_stop;      /* to byte */
+  off_t pipe_range_stop; /* This is used only if the file is sent by the
+                          * pipe_read() method. Indicates how many bytes to send
+                          * from a file (actually a copy of range_stop, but it
+                          * is modified. */
+  int keepalive_given;   /* whether the keepalive was sent by the client */
+  int keepalive;         /* keepalive status */
+  int kacount;           /* keepalive count */
 
-    int data_fd;                /* fd of data */
-    off_t filesize;     /* filesize */
-    off_t filepos;      /* position in file */
-    char *data_mem;             /* mmapped/malloced char array */
-    int method;                 /* M_GET, M_POST, etc. */
+  int data_fd;    /* fd of data */
+  off_t filesize; /* filesize */
+  off_t filepos;  /* position in file */
+  char *data_mem; /* mmapped/malloced char array */
+  int method;     /* M_GET, M_POST, etc. */
 
-    char *logline;              /* line to log file */
+  char *logline; /* line to log file */
 
-    char *header_line;          /* beginning of un or incompletely processed header line */
-    char *header_end;           /* last known end of header, or end of processed data */
-    int parse_pos;              /* how much have we parsed */
-    int client_stream_pos;      /* how much have we read... */
+  char *header_line; /* beginning of un or incompletely processed header line */
+  char *header_end;  /* last known end of header, or end of processed data */
+  int parse_pos;     /* how much have we parsed */
+  int client_stream_pos; /* how much have we read... */
 
-    int buffer_start;           /* where the buffer starts */
-    int buffer_end;             /* where the buffer ends */
+  int buffer_start; /* where the buffer starts */
+  int buffer_end;   /* where the buffer ends */
 
-    int http_version;           /* HTTP version numeric HTTP_0_9, HTTP_1_0 etc */
-    char *http_version_str;     /* HTTP/?.? of req */
-    int response_status;        /* R_NOT_FOUND etc. */
+  int http_version;       /* HTTP version numeric HTTP_0_9, HTTP_1_0 etc */
+  char *http_version_str; /* HTTP/?.? of req */
+  int response_status;    /* R_NOT_FOUND etc. */
 
-    char *if_modified_since;    /* If-Modified-Since */
-    time_t last_modified;       /* Last-modified: */
+  char *if_modified_since; /* If-Modified-Since */
+  time_t last_modified;    /* Last-modified: */
 
-    char *if_none_match_etag;
-    char *if_match_etag;
-    char *if_range_etag;        /* These are the Etags sent by the client
-                                 * In If-* requests.
-                                 */
-    int if_types;		/* If-Match, If-None-Match, If-Range 
-                                 * and OR of the MATCH_* definitions.
-                                 */
+  char *if_none_match_etag;
+  char *if_match_etag;
+  char *if_range_etag; /* These are the Etags sent by the client
+                        * In If-* requests.
+                        */
+  int if_types;        /* If-Match, If-None-Match, If-Range
+                        * and OR of the MATCH_* definitions.
+                        */
 
-    char local_ip_addr[NI_MAXHOST]; /* for virtualhost */
-    int hostname_given;		    /* For HTTP/1.1 checks. 0 if the
-    				     * Host header was not found.
-    				     */
-    char *hostname;		    /* The hostname used in this request */
-    char document_root[MAX_PATH_LENGTH + 1];
-    char user_dir[MAX_USER_DIR_LENGTH + 1];
+  char local_ip_addr[NI_MAXHOST]; /* for virtualhost */
+  int hostname_given;             /* For HTTP/1.1 checks. 0 if the
+                                   * Host header was not found.
+                                   */
+  char *hostname;                 /* The hostname used in this request */
+  char document_root[MAX_PATH_LENGTH + 1];
+  char user_dir[MAX_USER_DIR_LENGTH + 1];
 
-    /* CGI vars */
+  /* CGI vars */
 
-    int remote_port;            /* could be used for ident */
+  int remote_port; /* could be used for ident */
 
-    char remote_ip_addr[NI_MAXHOST]; /* after inet_ntoa */
+  char remote_ip_addr[NI_MAXHOST]; /* after inet_ntoa */
 
-    char* action;		/* the action to run if CGI_ACTION cgi */
-    int is_cgi;                 /* true if CGI/NPH */
-    int cgi_status;
-    int cgi_env_index;          /* index into array */
+  char *action; /* the action to run if CGI_ACTION cgi */
+  int is_cgi;   /* true if CGI/NPH */
+  int cgi_status;
+  int cgi_env_index; /* index into array */
 
-    /* Agent and referer for logfiles */
-    char *header_user_agent;
-    char *header_referer;
+  /* Agent and referer for logfiles */
+  char *header_user_agent;
+  char *header_referer;
 
-    tmp_fd post_data_fd;           /* fd for post data tmpfile */
+  tmp_fd post_data_fd; /* fd for post data tmpfile */
 
-    char *path_info;            /* env variable */
-    char *path_translated;      /* env variable */
-    char *script_name;          /* env variable */
-    char *query_string;         /* env variable */
-    char *content_type;         /* env variable */
-    char *content_length;       /* env variable */
+  char *path_info;       /* env variable */
+  char *path_translated; /* env variable */
+  char *script_name;     /* env variable */
+  char *query_string;    /* env variable */
+  char *content_type;    /* env variable */
+  char *content_length;  /* env variable */
 
-    struct mmap_entry *mmap_entry_var;
+  struct mmap_entry *mmap_entry_var;
 
-    struct request *next;       /* next */
-    struct request *prev;       /* previous */
+  struct request *next; /* next */
+  struct request *prev; /* previous */
 
-    /* everything below this line is kept regardless */
-    char buffer[BUFFER_SIZE + 1]; /* generic I/O buffer */
-    char request_uri[MAX_HEADER_LENGTH + 1]; /* uri */
-    char client_stream[CLIENT_STREAM_SIZE]; /* data from client - fit or be hosed */
-    char *cgi_env[CGI_ENV_MAX + 4];             /* CGI environment */
+  /* everything below this line is kept regardless */
+  char buffer[BUFFER_SIZE + 1];            /* generic I/O buffer */
+  char request_uri[MAX_HEADER_LENGTH + 1]; /* uri */
+  char client_stream[CLIENT_STREAM_SIZE];  /* data from client - fit or be hosed
+                                            */
+  char *cgi_env[CGI_ENV_MAX + 4];          /* CGI environment */
 
 #ifdef ACCEPT_ON
-    char accept[MAX_ACCEPT_LENGTH]; /* Accept: fields */
+  char accept[MAX_ACCEPT_LENGTH]; /* Accept: fields */
 #endif
 };
 
 typedef struct request request;
 
 struct status {
-    long requests;
-    long errors;
+  long requests;
+  long errors;
 };
 
-
-extern char *optarg;            /* For getopt */
-extern FILE *yyin;              /* yacc input */
+extern char *optarg; /* For getopt */
+extern FILE *yyin;   /* yacc input */
 
 typedef struct {
 #ifdef ENABLE_SMP
-	pthread_t tid;
+  pthread_t tid;
 #endif
-	request* request_ready;
-	request* request_block;
-	request* request_free;
+  request *request_ready;
+  request *request_block;
+  request *request_free;
 
-	socket_type server_s[2];
+  socket_type server_s[2];
 
 #ifdef USE_POLL
-        struct pollfd *pfds;
-        int pfd_len;
+  struct pollfd *pfds;
+  int pfd_len;
 #else
-        fd_set block_read_fdset; /* fds blocked on read */
-        fd_set block_write_fdset; /* fds blocked on write */
+  fd_set block_read_fdset;  /* fds blocked on read */
+  fd_set block_write_fdset; /* fds blocked on write */
 #endif
-  
-	struct timeval req_timeout;
-        int sighup_flag; /* 1 => signal has happened, needs attention */
-	int sigchld_flag; /* 1 => signal has happened, needs attention */
-	int sigalrm_flag; /* 1 => signal has happened, needs attention */
-	int sigusr1_flag; /* 1 => signal has happened, needs attention */
-	int sigterm_flag; /* lame duck mode */
-	
-	int max_fd;
-	
-	int sockbufsize;
-	struct status status;
-	int total_connections;
 
-	/* for SIGBUS handling */
-	jmp_buf env;
-	int handle_sigbus;
+  struct timeval req_timeout;
+  int sighup_flag;  /* 1 => signal has happened, needs attention */
+  int sigchld_flag; /* 1 => signal has happened, needs attention */
+  int sigalrm_flag; /* 1 => signal has happened, needs attention */
+  int sigusr1_flag; /* 1 => signal has happened, needs attention */
+  int sigterm_flag; /* lame duck mode */
+
+  int max_fd;
+
+  int sockbufsize;
+  struct status status;
+  int total_connections;
+
+  /* for SIGBUS handling */
+  jmp_buf env;
+  int handle_sigbus;
 
 } server_params;
 
@@ -314,7 +314,7 @@ extern int verbose_cgi_logs;
 extern int backlog;
 extern time_t current_time;
 
-/* Global stuff that is shared by all threads. 
+/* Global stuff that is shared by all threads.
  * Use with extreme care, or don't use.
  */
 extern server_params *global_server_params;
