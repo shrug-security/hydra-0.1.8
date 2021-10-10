@@ -432,6 +432,10 @@ int create_etag(unsigned long int size, unsigned long int mod_time,
  */
 
 int boa_atoi(const char *s) {
+  if (!s) { /* Check for null pointer; fixes CVE-2019-17502 */
+    return -1;
+  }
+
   int retval;
   char reconv[22];
 
